@@ -1,2 +1,21 @@
 # deps
 node_modules/
+
+# Prisma
+/prisma/big_blog.db
+/prisma/big_blog.db-journal
+/prisma/migrations/
+
+# Editor & OS files
+.DS_Store
+.idea/
+.vscode/
+
+# Logs & Debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-error.log
+
+# Environment Variable
+.env
