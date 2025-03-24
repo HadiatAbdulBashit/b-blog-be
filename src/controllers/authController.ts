@@ -11,7 +11,7 @@ export const register = async (c: Context) => {
   if (!name || !email || !password) return c.json({ error: "All fields are required" }, 400);
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) return c.json({ error: "User already exists" }, 400);
+  if (existingUser) return c.json({ error: "Email already taken" }, 400);
 
   const hashedPassword = await hash(password, 8);
   await prisma.user.create({ data: { name, email, password: hashedPassword } });
@@ -31,8 +31,13 @@ export const login = async (c: Context) => {
     return c.json({ error: "Invalid email or password" }, 401);
   }
 
+  const { password: _, ...restUser } = user;
+
   const token = sign({ id: user.id }, SECRET_KEY ?? DEFAULT_SECRET_KEY, { expiresIn: "1h" });
-  return c.json({ token });
+  return c.json({ token, user: restUser }, 200);
 };
 
-export const logout = async (c: Context) => c.json({ message: "Logout successful" });
+export const logout = async (c: Context) => {
+  // Clear the session for future implementation
+  return c.json({ message: "Logged out successfully" });
+};
