@@ -1,9 +1,18 @@
-import { Hono } from 'hono'
+import { Hono } from "hono";
+import authRoutes from "./routes/authRoutes";
 
-const app = new Hono()
+const app = new Hono();
+const apiV1 = new Hono();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+apiV1.route("/", authRoutes);
 
-export default app
+app.get("/", (c) => {
+  return c.text("Hello from big blog!");
+});
+
+app.route("/v1", apiV1);
+
+export default {
+  port: 3000,
+  fetch: app.fetch,
+};
