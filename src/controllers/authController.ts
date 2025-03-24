@@ -2,9 +2,9 @@ import { prisma } from "../config/prismaClient.js";
 import { hash, compare } from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import { Context } from "hono";
+import { DEFAULT_SECRET_KEY } from "../constant/index.js";
 
 const SECRET_KEY = process.env.JWT_SECRET;
-const DEFAULT_SECRET_KEY = "THIS_IS_A_DEFAULT_SECRET_KEY";
 
 export const register = async (c: Context) => {
   const { name, email, password } = await c.req.json();
@@ -14,20 +14,24 @@ export const register = async (c: Context) => {
   if (existingUser) return c.json({ error: "User already exists" }, 400);
 
   const hashedPassword = await hash(password, 8);
-  const user = await prisma.user.create({ data: { name, email, password: hashedPassword } });
+  await prisma.user.create({ data: { name, email, password: hashedPassword } });
 
   return c.json({ message: "User registered successfully" }, 201);
 };
 
 export const login = async (c: Context) => {
   const { email, password } = await c.req.json();
+  if (!email || !password) {
+    return c.json({ error: "Email and password are required" }, 400);
+  }
+
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user || !(await compare(password, user.password))) {
-    return c.json({ error: "Invalid credentials" }, 401);
+    return c.json({ error: "Invalid email or password" }, 401);
   }
 
-  const token = sign({ id: user.id, email: user.email }, SECRET_KEY ?? DEFAULT_SECRET_KEY, { expiresIn: "1h" });
+  const token = sign({ id: user.id }, SECRET_KEY ?? DEFAULT_SECRET_KEY, { expiresIn: "1h" });
   return c.json({ token });
 };
 
