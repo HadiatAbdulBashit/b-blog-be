@@ -19,6 +19,25 @@ export const getAllPosts = async (c: Context) => {
   return c.json(posts);
 };
 
+export const getAllMyPosts = async (c: Context) => {
+  const posts = await prisma.post.findMany({
+    select: {
+      id: true,
+      title: true,
+      createdAt: true,
+      author: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    where: { authorId: c.get("user").id },
+  });
+
+  return c.json(posts);
+};
+
 export const getPostById = async (c: Context) => {
   const { id } = c.req.param();
 
