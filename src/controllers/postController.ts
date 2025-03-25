@@ -2,21 +2,51 @@ import { prisma } from "../config/prismaClient.js";
 import { Context } from "hono";
 
 export const getAllPosts = async (c: Context) => {
-  const posts = await prisma.post.findMany({
-    select: {
-      id: true,
-      title: true,
-      createdAt: true,
-      author: {
-        select: {
-          name: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const page = Number(c.req.query("page")) || 1;
+    const limit = Number(c.req.query("limit")) || 10;
+    const skip = (page - 1) * limit;
+    const search = c.req.query("q") || "";
+    const sort = c.req.query("sort") === "asc" ? "asc" : "desc";
+    const sortBy = c.req.query("sortBy") || "createdAt";
 
-  return c.json(posts);
+    const allowedSortFields = ["title", "createdAt", "author"];
+    if (!allowedSortFields.includes(sortBy)) {
+      return c.json({ error: "Invalid sortBy field" }, 400);
+    }
+
+    const [posts, totalPosts] = await prisma.$transaction([
+      prisma.post.findMany({
+        where: {
+          OR: [{ title: { contains: search } }, { content: { contains: search } }],
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          [sortBy]: sort,
+        },
+        select: {
+          title: true,
+          createdAt: true,
+          author: { select: { name: true } },
+        },
+      }),
+      prisma.post.count({
+        where: {
+          OR: [{ title: { contains: search } }, { content: { contains: search } }],
+        },
+      }),
+    ]);
+
+    return c.json({
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+      totalPosts,
+      posts,
+    });
+  } catch (error) {
+    return c.json({ error: "Failed to fetch posts" }, 500);
+  }
 };
 
 export const getAllMyPosts = async (c: Context) => {
