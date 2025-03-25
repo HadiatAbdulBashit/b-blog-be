@@ -41,3 +41,13 @@ export const logout = async (c: Context) => {
   // Clear the session for future implementation
   return c.json({ message: "Logged out successfully" });
 };
+
+export const getUserInfo = async (c: Context) => {
+  const user = c.get("user");
+
+  const selectedUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    omit: { password: true },
+  });
+  return c.json(selectedUser);
+};
