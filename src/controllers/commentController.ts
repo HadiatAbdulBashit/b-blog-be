@@ -5,7 +5,7 @@ export const getAllComments = async (c: Context) => {
   const { postId } = c.req.param();
   const comments = await prisma.comment.findMany({
     where: { postId },
-    include: { author: { select: { name: true } } },
+    include: { author: { select: { name: true, id: true } } },
     orderBy: { createdAt: "asc" },
   });
 
