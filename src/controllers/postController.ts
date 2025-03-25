@@ -10,7 +10,7 @@ export const getAllPosts = async (c: Context) => {
     const sort = c.req.query("sort") === "asc" ? "asc" : "desc";
     const sortBy = c.req.query("sortBy") || "createdAt";
 
-    const allowedSortFields = ["title", "createdAt", "author"];
+    const allowedSortFields = ["title", "createdAt"];
     if (!allowedSortFields.includes(sortBy)) {
       return c.json({ error: "Invalid sortBy field" }, 400);
     }
@@ -26,6 +26,7 @@ export const getAllPosts = async (c: Context) => {
           [sortBy]: sort,
         },
         select: {
+          id: true,
           title: true,
           createdAt: true,
           author: { select: { name: true } },

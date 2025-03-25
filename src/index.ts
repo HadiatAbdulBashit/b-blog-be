@@ -3,13 +3,16 @@ import authRoutes from "./routes/authRoutes";
 import postRoutes from "./routes/postRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import { cors } from "hono/cors";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const app = new Hono();
 const apiV1 = new Hono();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_CORS_URL || "",
     allowMethods: ["GET", "POST", "PUT", "DELETE"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,
